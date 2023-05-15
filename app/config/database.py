@@ -1,7 +1,8 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from decouple import config
 
-url = 'postgresql://postgres:123@localhost:5432/apidb'
+url = config('URLDB')
 
 engine = create_engine(url)
 
