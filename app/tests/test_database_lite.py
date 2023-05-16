@@ -1,14 +1,13 @@
-import pytest
 from sqlalchemy import create_engine
+from decouple import config
 
-@pytest.mark.test
 def test_database_connection():
-    url = 'postgresql://postgres:123@localhost:5432/apidb'
+    url = config('URLDB')
     engine = create_engine(url)
-
+    
     try:
         connection = engine.connect()
-        assert connection is not None
+        print("Conexão bem-sucedida!")
         connection.close()
     except Exception as e:
-        pytest.fail(f"Falha ao conectar ao banco de dados: {e}")
+        assert False, f"Erro ao conectar: {e}"
