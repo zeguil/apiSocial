@@ -1,3 +1,5 @@
+import random
+import string
 from config.database import Base
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, ForeignKey
@@ -9,6 +11,7 @@ class User(Base):
     username = Column(String, unique=True)
     password = Column(String)
     profile = relationship("Profile", uselist=False, back_populates="user")
+
 
 class Profile(Base):
     __tablename__ = 'profiles'

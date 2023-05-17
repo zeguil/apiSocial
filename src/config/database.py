@@ -8,7 +8,7 @@ url = config('URLDB')
 
 engine = create_engine(url)
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 

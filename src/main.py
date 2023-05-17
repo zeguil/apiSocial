@@ -3,15 +3,21 @@ from typing import Dict
 from models.user import User, Profile
 from config.database import Base, engine
 from routers.user_router import userRouter
+from sqlalchemy.engine.reflection import Inspector
 from fastapi import FastAPI
 
-Base.metadata.drop_all(bind=engine)
+# Criar o objeto Inspector
+inspector = Inspector.from_engine(engine)
 
-# Verifica se as tabelas já existem no banco de dados
-existing_tables = engine.table_names()
+# Verificar se as tabelas já existem no banco de dados
+existing_tables = inspector.get_table_names()
 if not existing_tables:
     # Cria as tabelas apenas se elas ainda não existirem
     Base.metadata.create_all(bind=engine)
+# else:
+#     Base.metadata.drop_all(bind=engine)
+#     print("todas as tabelas foram deletadas")
+
 
 app = FastAPI()
 
