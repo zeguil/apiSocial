@@ -2,7 +2,7 @@ import random
 import string
 from config.database import Base
 from sqlalchemy.orm import relationship
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
 
 
 class User(Base):
@@ -10,6 +10,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     username = Column(String, unique=True)
     password = Column(String)
+    is_admin = Column(Boolean, default=False)
     profile = relationship("Profile", uselist=False, back_populates="user")
 
 

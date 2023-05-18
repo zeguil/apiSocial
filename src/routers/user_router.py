@@ -8,7 +8,7 @@ from models.user import User
 class UserRequest(BaseModel):
     username: str
     password: str
-    
+    is_admin: bool = False
 
 class UserResponse(BaseModel):
     username: str
