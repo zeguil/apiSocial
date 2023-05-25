@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from config.database import Session
 from config.dependencies import get_db
 from typing import List
@@ -34,6 +34,9 @@ def list_users(db: Session = Depends(get_db)) -> List[UserResponse]:
 def list_user_by_id(id_user: int, db: Session = Depends(get_db)) -> UserResponse:
 
     user = db.query(User).get(id_user)
+
+    if not user:
+        raise HTTPException(status_code=404, detail="item not found")
 
     return user
 
