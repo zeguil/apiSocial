@@ -4,9 +4,7 @@ from config.dependencies import get_db
 from typing import List
 from pydantic import BaseModel
 from models.user import User
-from utils.user_utils import (valid_password,
-                               valid_username,
-                                 valid_email)
+from utils.user_utils import (validate_user_data)
 import bcrypt
 
 class UserRequest(BaseModel):
@@ -50,17 +48,7 @@ def list_user_by_id(id_user: int, db: Session = Depends(get_db)) -> UserResponse
 @userRouter.post("/", response_model= UserResponse, status_code=201)
 def create_user(user: UserRequest, db: Session = Depends(get_db)) -> UserResponse:
 
-    # Verifica se o username é valido
-    if not valid_username(user.username):
-        raise HTTPException(status_code=200, detail="Invalid username")
-    
-    #Verifica se o email é valido
-    if not valid_email(user.email):
-        raise HTTPException(status_code=200, detail="Invalid email")
-    
-    # Verifica se a senha é valida
-    if not valid_password(user.password):
-        raise HTTPException(status_code=200, detail="Invalid password")
+    validate_user_data(user)
     
     # muda todos os caractéres do username para minusculo
     user.username = user.username.lower()
@@ -75,7 +63,6 @@ def create_user(user: UserRequest, db: Session = Depends(get_db)) -> UserRespons
     if existing_email:
         raise HTTPException(status_code=409, detail="O email já está em uso")
     
-
     # Criptografa a senha antes de salvar no banco
     hashed_password = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt())
 

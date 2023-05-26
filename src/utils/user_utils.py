@@ -1,5 +1,5 @@
 import re
-
+from fastapi import HTTPException
 
 blacklist = []
 
@@ -48,4 +48,14 @@ def valid_email(email):
         return True
     
     return False
-            
+
+def validate_user_data(user):
+    if not valid_username(user.username):
+        raise HTTPException(status_code=200, detail="Invalid username")
+
+    if not valid_email(user.email):
+        raise HTTPException(status_code=200, detail="Invalid email")
+
+    if not valid_password(user.password):
+        raise HTTPException(status_code=200, detail="Invalid password")
+    
