@@ -4,15 +4,20 @@ from config.dependencies import get_db
 from typing import List
 from pydantic import BaseModel
 from models.user import User
+from utils.user_utils import (valid_password,
+                               valid_username,
+                                 valid_email)
 import bcrypt
 
 class UserRequest(BaseModel):
     username: str
     password: str
+    email: str
     is_admin: bool = False
 
 class UserResponse(BaseModel):
     username: str
+    email: str
     
     class Config:
         orm_mode = True
@@ -35,6 +40,7 @@ def list_user_by_id(id_user: int, db: Session = Depends(get_db)) -> UserResponse
 
     user = db.query(User).get(id_user)
 
+    # Verifica se o usuário existe no banco
     if not user:
         raise HTTPException(status_code=404, detail="item not found")
 
@@ -44,13 +50,41 @@ def list_user_by_id(id_user: int, db: Session = Depends(get_db)) -> UserResponse
 @userRouter.post("/", response_model= UserResponse, status_code=201)
 def create_user(user: UserRequest, db: Session = Depends(get_db)) -> UserResponse:
 
+    # Verifica se o username é valido
+    if not valid_username(user.username):
+        raise HTTPException(status_code=200, detail="Invalid username")
+    
+    #Verifica se o email é valido
+    if not valid_email(user.email):
+        raise HTTPException(status_code=200, detail="Invalid email")
+    
+    # Verifica se a senha é valida
+    if not valid_password(user.password):
+        raise HTTPException(status_code=200, detail="Invalid password")
+    
+    # muda todos os caractéres do username para minusculo
+    user.username = user.username.lower()
+
+    # Verificar se o username já existe no banco
+    existing_username = db.query(User).filter(User.username == user.username).first()
+    if existing_username:
+        raise HTTPException(status_code=409, detail="O nome de usuário já está em uso")
+    
+    # Verificar se o email já existe no banco
+    existing_email = db.query(User).filter(User.email == user.email).first()
+    if existing_email:
+        raise HTTPException(status_code=409, detail="O email já está em uso")
+    
+
+    # Criptografa a senha antes de salvar no banco
     hashed_password = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt())
 
     new_user = User(
         username=user.username,
-        password=hashed_password.decode('utf-8')
+        password=hashed_password.decode('utf-8'),
+        email = user.email
     )
-
+    
     db.add(new_user)
     db.commit()
     db.refresh(new_user)

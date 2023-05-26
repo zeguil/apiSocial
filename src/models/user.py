@@ -10,6 +10,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     username = Column(String, unique=True)
     password = Column(String)
+    email = Column(String, unique=True)
     is_admin = Column(Boolean, default=False)
     profile = relationship("Profile", uselist=False, back_populates="user")
 
