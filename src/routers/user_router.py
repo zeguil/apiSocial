@@ -3,6 +3,7 @@ from config.database import Session
 from config.dependencies import get_db
 from typing import List
 from pydantic import BaseModel
+from sqlalchemy import or_
 from models.user import User
 from utils.user_utils import (validate_user_data)
 import bcrypt
@@ -50,18 +51,12 @@ def create_user(user: UserRequest, db: Session = Depends(get_db)) -> UserRespons
 
     validate_user_data(user)
     
-    # muda todos os caractéres do username para minusculo
-    user.username = user.username.lower()
-
-    # Verificar se o username já existe no banco
-    existing_username = db.query(User).filter(User.username == user.username).first()
-    if existing_username:
-        raise HTTPException(status_code=409, detail="O nome de usuário já está em uso")
-    
-    # Verificar se o email já existe no banco
-    existing_email = db.query(User).filter(User.email == user.email).first()
-    if existing_email:
-        raise HTTPException(status_code=409, detail="O email já está em uso")
+    existing_user = db.query(User).filter(or_(User.username == user.username, User.email == user.email)).first()
+    if existing_user:
+        if existing_user.username == user.username:
+            raise HTTPException(status_code=409, detail="Username already in use")
+        else:
+            raise HTTPException(status_code=409, detail="Email already in use")
     
     # Criptografa a senha antes de salvar no banco
     hashed_password = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt())

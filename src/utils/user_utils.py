@@ -59,3 +59,5 @@ def validate_user_data(user):
     if not valid_password(user.password):
         raise HTTPException(status_code=200, detail="Invalid password")
     
+    # muda todos os caractéres do username para minusculo
+    user.username = user.username.lower()
