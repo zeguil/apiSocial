@@ -2,130 +2,102 @@ from fastapi import APIRouter, Depends, HTTPException
 from config.database import Session
 from config.dependencies import get_db
 from typing import List
-from pydantic import BaseModel
+from schemas.user import *
 from sqlalchemy import or_
+from sqlalchemy.exc import SQLAlchemyError
 from models.user import User
 from utils.user_utils import (validate_user_data)
 import bcrypt
 from logs.logger import logger
 
-class UserRequest(BaseModel):
-    username: str
-    password: str
-    email: str
-    is_admin: bool = False
+userRouter = APIRouter(prefix='/user', tags=['Usuários'] )
 
-class UserResponse(BaseModel):
-    username: str
-    email: str
-    
-    class Config:
-        orm_mode = True
-
-userRouter = APIRouter(prefix='/user', )
-
-
-#! Get all users 
-@userRouter.get("/", response_model=List[UserResponse])
+# Listar Usuários
+@userRouter.get("/", response_model=List[UserResponse], status_code=200)
 def list_users(db: Session = Depends(get_db)) -> List[UserResponse]:
-
     users = db.query(User).all()
-
     return users
 
-
-#! Get User by your id
-@userRouter.get("/" ,response_model=UserResponse, status_code=200)
-def list_user_by_id(id_user: int, db: Session = Depends(get_db)) -> UserResponse:
-
+# Listar Usuário Pelo ID
+@userRouter.get("/{id_user}", response_model=UserResponse, status_code=200)
+def get_user_by_id(id_user: int, db: Session = Depends(get_db)) -> UserResponse:
     try:
-        user = db.query(User).get(id_user)
-
-        # Verifica se o usuário existe no banco
+        user: User = db.query(User).get(id_user)
         if not user:
-            raise HTTPException(status_code=404, detail="item not found")
-
+            raise HTTPException(status_code=404, detail="User not found")
         return user
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal server error"
-                            
-#! Create User
-@userRouter.post("/", response_model= UserResponse, status_code=201)
-def create_user(user: UserRequest, db: Session = Depends(get_db)) -> UserResponse:
+    except SQLAlchemyError as e:
+        logger.error(e)
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
+# Criar Usuário
+@userRouter.post("/", response_model=UserResponse, status_code=201)
+def create_user(user: UserRequest, db: Session = Depends(get_db)) -> UserResponse:
     validate_user_data(user)
-    
     try:
-        # Verifica se usuario ou email ja existem no banco
-        existing_user = db.query(User).filter(or_(User.username == user.username,
-                                                User.email == user.email)
-                                                ).first()
+        existing_user: User = db.query(User).filter(or_(User.username == user.username, User.email == user.email)).first()
+        # verifica se usrário ou email estão em uso
         if existing_user:
             if existing_user.username == user.username:
                 raise HTTPException(status_code=409, detail="Username already in use")
             else:
                 raise HTTPException(status_code=409, detail="Email already in use")
-        
-        # Criptografa a senha antes de salvar no banco
+        # criptografa a senha
         hashed_password = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt())
 
         new_user = User(
             username=user.username,
             password=hashed_password.decode('utf-8'),
-            email = user.email
+            email=user.email
         )
-        
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
-
         return new_user
+    except SQLAlchemyError as e:
+        logger.error(e)
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
-
-#! Update User
-@userRouter.put("/{id_user}", response_model=UserResponse,  status_code=200)
-def update_user(id_user: int, user_request: UserRequest, db: Session = Depends(get_db)) -> UserResponse:
-    
-    
+# Atualiza Dados do Usuário
+@userRouter.put("/{id_user}", response_model=UserResponse, status_code=200)
+def update_user(id_user: int, user_update: UserUpdate, db: Session = Depends(get_db)) -> UserResponse:
     try:
-        user: User =  db.query(User).get(id_user)
-
+        user: User = db.query(User).get(id_user)
         if not user:
-            raise HTTPException(status_code=404, detail="Item not found")
+            raise HTTPException(status_code=404, detail="User not found")
         
-        if not id_user:
-            raise HTTPException(status_code=404, detail="item not found")
+        if user_update.username:
+            user.username = user_update.username
         
-        # Campos a serem atualizados
-        user.username = user_request.username
-        user.password = user_request.password
-        user.is_admin = user_request.is_admin
-
-        db.add(user)
+        if user_update.email:
+            user.email = user_update.email
+        
         db.commit()
         db.refresh(user)
-        return user
-    except Exception as e:
-        logger.error(e)
-        raise HTTPException(status_code=400, detail="not found")
 
-#! Delete User
+        updated_user_response_data = {}
+        if user.username:
+            updated_user_response_data["username"] = user.username
+        if user.email:
+            updated_user_response_data["email"] = user.email
+        
+        updated_user_response = UserResponse(**updated_user_response_data)
+        
+        return updated_user_response
+    except SQLAlchemyError as e:
+        logger.error(e)
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+
+
 @userRouter.delete("/{id_user}", status_code=204)
 def delete_user(id_user: int, db: Session = Depends(get_db)) -> None:
     try:
-        user = db.query(User).get(id_user)
-
+        user: User = db.query(User).get(id_user)
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
         db.delete(user)
         db.commit()
-
-        return {"msg": "User deleted"}
-    
-    except Exception as e:
+    except SQLAlchemyError as e:
         logger.error(e)
-        raise HTTPException(status_code=400, detail="Bad request")
-    
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")

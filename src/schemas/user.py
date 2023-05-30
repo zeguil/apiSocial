@@ -1,12 +1,18 @@
 from pydantic import BaseModel
+from pydantic.types import Optional
 
 class UserRequest(BaseModel):
     username: str
     password: str
-    is_admin: bool = False
+    email: str
+    # is_admin: bool = False
 
 class UserResponse(BaseModel):
     username: str
+    email: str
+    
+    class Config:
+        orm_mode = True
 
 
 class UserPassword(BaseModel):
@@ -15,5 +21,5 @@ class UserPassword(BaseModel):
     new_password: str
 
 class UserUpdate(BaseModel):
-    username: str
-
+    username: Optional[str]
+    email: Optional[str]
