@@ -7,11 +7,12 @@ from schemas.user import *
 from sqlalchemy import or_
 from sqlalchemy.exc import SQLAlchemyError
 from models.user import User
-from utils.user_utils import validate_user_data
+from utils.user_utils import validate_user_data, generate_reset_token
 from utils.email_utils import send_email
 import bcrypt
 from logs.logger import logger
 from itsdangerous import URLSafeTimedSerializer
+
 
 userRouter = APIRouter(prefix='/user', tags=['Usuários'] )
 
@@ -123,10 +124,34 @@ def activate_account(activation_token: str, db: Session = Depends(get_db)):
     if user.is_active:
         raise HTTPException(status_code=400, detail="Account already activated")
     
+    serializer = URLSafeTimedSerializer(config('SECRET_KEY'))
+
+    token = serializer.dumps(user.email, salt="renew")
+
     # Ative a conta do usuário
     user.is_active = True
-    user.token = None  # Remova o token de ativação
+    # Atualiza o token
+    user.token = token  
     
     db.commit()
     
     return {"message": "Account activated successfully"}
+
+@userRouter.post("/forgot-password")
+def forgot_password(email_request: EmailRequest, db: Session = Depends(get_db)):
+    # Verifica se o email fornecido existe no seu sistema de usuário
+    user = db.query(User).filter_by(email=email_request.email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Email not found")
+
+    # Gera um token de redefinição de senha
+    reset_token = generate_reset_token()
+
+    # Salve o token no banco de dados ou em algum local para posterior verificação
+    user.token = reset_token
+    db.commit(user)
+
+    # Envia o e-mail de redefinição de senha para o usuário
+    send_email(email=user.email, token=reset_token)
+
+    return {"message": "Password reset email sent"}

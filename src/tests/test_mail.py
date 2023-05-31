@@ -6,6 +6,8 @@ from pathlib import Path
 from decouple import config
 from fastapi import HTTPException
 import re
+import aiosmtplib
+import asyncio
 
 def validEmail(email):
     regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
@@ -51,6 +53,7 @@ def send_email(email, token, name):
         # Enviar email
         log.info(f'sending email to {email}')
         server.sendmail(message['From'], message['To'], message.as_string())
+        print(f"EMAIL ENVIADO PARA {email}")
     except Exception as e:
         log.error('Error sending email')
         log.exception(str(e))
@@ -58,5 +61,8 @@ def send_email(email, token, name):
         # Fechar servidor
         server.quit()
 
+send_email("zeguilhermelins@hotmail.com", "InplZ3VpbGhlcm1lbGluc0Bob3RtYWlsLmNvbSI.ZHdz_A.M1hNUzfrysA7obj7KtsszFfpCRs", "josé")
 
-send_email("zeguilhermelins@hotmail.com", "fgqegewgwffeqg", "José")
+# vbleliss310700@gmail.com
+# victoriabeatrizlelis@gmail.com
+# barbara.oli12@hotmail.com

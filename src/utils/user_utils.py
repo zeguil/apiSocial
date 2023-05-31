@@ -4,6 +4,8 @@ from itsdangerous import URLSafeTimedSerializer
 from smtplib import SMTP_SSL
 from email.mime.text import MIMEText
 from decouple import config
+import secrets
+
 blacklist = []
 
 def valid_password(senha):
@@ -83,3 +85,5 @@ def send_activation_email(email: str, activation_token: str):
         smtp.login(SMTP_USERNAME, SMTP_PASSWORD)
         smtp.send_message(message)
 
+def generate_reset_token():
+    return secrets.token_urlsafe(32)

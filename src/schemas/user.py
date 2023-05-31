@@ -23,3 +23,16 @@ class UserPassword(BaseModel):
 class UserUpdate(BaseModel):
     username: Optional[str]
     email: Optional[str]
+
+class EmailRequest(BaseModel):
+    email: str
+
+
+class NewPasswordRequest(BaseModel):
+    old_passwod: str
+    new_password: str
+    confirm_password: str
+
+class ForgotPasswordRequest(BaseModel):
+    new_password: str
+    confirm_password: str
