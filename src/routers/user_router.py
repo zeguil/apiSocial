@@ -2,13 +2,16 @@ from fastapi import APIRouter, Depends, HTTPException
 from config.database import Session
 from config.dependencies import get_db
 from typing import List
+from decouple import config
 from schemas.user import *
 from sqlalchemy import or_
 from sqlalchemy.exc import SQLAlchemyError
 from models.user import User
-from utils.user_utils import (validate_user_data)
+from utils.user_utils import validate_user_data
+from utils.email_utils import send_email
 import bcrypt
 from logs.logger import logger
+from itsdangerous import URLSafeTimedSerializer
 
 userRouter = APIRouter(prefix='/user', tags=['Usuários'] )
 
@@ -45,14 +48,23 @@ def create_user(user: UserRequest, db: Session = Depends(get_db)) -> UserRespons
         # criptografa a senha
         hashed_password = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt())
 
+        serializer = URLSafeTimedSerializer(config('SECRET_KEY'))
+
+        activation_token = serializer.dumps(user.email, salt="activation")
+
         new_user = User(
             username=user.username,
             password=hashed_password.decode('utf-8'),
-            email=user.email
+            email=user.email,
+            token=activation_token
         )
+
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
+
+        send_email(token=activation_token, name=user.username, email=user.email)
+
         return new_user
     except SQLAlchemyError as e:
         logger.error(e)
@@ -101,3 +113,20 @@ def delete_user(id_user: int, db: Session = Depends(get_db)) -> None:
     except SQLAlchemyError as e:
         logger.error(e)
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+
+@userRouter.get("/active/{activation_token}", status_code=200)
+def activate_account(activation_token: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter_by(token=activation_token).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Activation token not found")
+    
+    if user.is_active:
+        raise HTTPException(status_code=400, detail="Account already activated")
+    
+    # Ative a conta do usuário
+    user.is_active = True
+    user.token = None  # Remova o token de ativação
+    
+    db.commit()
+    
+    return {"message": "Account activated successfully"}

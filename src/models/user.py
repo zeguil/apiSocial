@@ -12,6 +12,8 @@ class User(Base):
     password = Column(String)
     email = Column(String, unique=True)
     is_admin = Column(Boolean, default=False)
+    token = Column(String, nullable=True)
+    is_active = Column(Boolean, default=False)
     profile = relationship("Profile", uselist=False, back_populates="user")
 
 

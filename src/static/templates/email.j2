@@ -1,0 +1,48 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            body{font-family: arial; font-size: 10pt;}
+            img{display: block;  width: 300px; margin: auto; margin-bottom: 5%;}
+            span{color: blue;}
+            .wrapper{width: 90%; margin: 20px auto; }
+            .end { padding-top:4%; }
+            p .box { padding-top:5%; }
+            .box {margin: 30px;
+                background-color: #ffffff;
+                border: 1px solid black;
+                opacity: 0.8;
+                padding: 20px;
+                filter: alpha(opacity=60);}
+            .box-bottom {
+                padding-left: 40px;
+                padding-right: 40px;}
+            @media screen and (min-width: 600px) {
+                .wrapper{width: 60%; margin: 20px auto;} 
+                p .box{
+                    padding-top:2%;
+                }
+                .end {
+                    padding-top:4%;
+                }
+                }
+            </style>
+    </head>
+    <body>
+        <div class="wrapper">
+            <div class="box">
+                <img src="https://uploaddeimagens.com.br/images/004/489/118/full/cover.png" alt="Logo">
+                <div>
+                    <h4 class="end" style="text-align: left;">Olá  {{ name }}</h4>
+                    <p> Olá,\n\nClique no link abaixo para ativar sua conta:\n\n</p><br>
+                    <h1 class="end" style="text-align: left;">http://localhost:8080/user/active/{{ token }}</h1><br>
+                    <p class="end"><i>Este é um e-mail automático. Não responda este e-mail.</i></p>
+                </div>
+            </div>
+                <div class="box-bottom">
+                    <p>Caso você não tenha criado uma conta no QuickLink,  nos contate através de mensagem direta no aplicativo ou e-mail para <a href="mailto:contato@autoponia.com.br">contato@autoponia.com.br</a>.</p>
+                    <p>© QuickLink 2022</p>
+                </div>
+        </div>
+    </body>
+</html>
