@@ -7,7 +7,7 @@ from schemas.user import *
 from sqlalchemy import or_
 from sqlalchemy.exc import SQLAlchemyError
 from models.user import User
-from utils.user_utils import validate_user_data, generate_reset_token
+from utils.user_utils import validate_user_data, generate_reset_token, valid_password
 from utils.email_utils import send_email
 import bcrypt
 from logs.logger import logger
@@ -64,7 +64,7 @@ def create_user(user: UserRequest, db: Session = Depends(get_db)) -> UserRespons
         db.commit()
         db.refresh(new_user)
 
-        send_email(token=activation_token, name=user.username, email=user.email)
+        send_email(token=activation_token, name=user.username, email=user.email, type=1)
 
         return new_user
     except SQLAlchemyError as e:
@@ -117,7 +117,7 @@ def delete_user(id_user: int, db: Session = Depends(get_db)) -> None:
 
 @userRouter.get("/active/{activation_token}", status_code=200)
 def activate_account(activation_token: str, db: Session = Depends(get_db)):
-    user = db.query(User).filter_by(token=activation_token).first()
+    user: User = db.query(User).filter_by(token=activation_token).first()
     if not user:
         raise HTTPException(status_code=404, detail="Activation token not found")
     
@@ -139,19 +139,42 @@ def activate_account(activation_token: str, db: Session = Depends(get_db)):
 
 @userRouter.post("/forgot-password")
 def forgot_password(email_request: EmailRequest, db: Session = Depends(get_db)):
-    # Verifica se o email fornecido existe no seu sistema de usuário
-    user = db.query(User).filter_by(email=email_request.email).first()
+    # Verifica se o email fornecido existe no banco
+    user: User = db.query(User).filter_by(email=email_request.email).first()
     if not user:
         raise HTTPException(status_code=404, detail="Email not found")
 
     # Gera um token de redefinição de senha
     reset_token = generate_reset_token()
 
-    # Salve o token no banco de dados ou em algum local para posterior verificação
+    # Salva o token no banco
     user.token = reset_token
     db.commit(user)
 
     # Envia o e-mail de redefinição de senha para o usuário
-    send_email(email=user.email, token=reset_token)
+    send_email(email=user.email, token=reset_token, type=2, name= user.username)
 
     return {"message": "Password reset email sent"}
+
+
+@userRouter.post("/reset-password")
+def reset_password(reset_request: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    # Verifica se o token de redefinição de senha é válido
+    user: User = db.query(User).filter_by(token=reset_request.token).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Invalid reset token")
+    
+    if reset_request.new_password != reset_request.confirm_password:
+        raise HTTPException(status_code=400, detail="The passwords do not match")
+
+    if not valid_password(reset_request.new_password):
+        raise HTTPException(status_code=409, detail="Invalid reset password")
+    
+    hashed_password = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt())
+
+    # Atualiza a senha do usuário com a nova senha fornecida
+    user.password = hashed_password.decode('utf-8')
+    user.token = None  # Limpa o token de redefinição de senha
+    db.commit()
+
+    return {"message": "Password reset successful"}

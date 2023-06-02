@@ -21,9 +21,12 @@ def render_template(template, token, name):
     data = {'token':token, 'name':name.title()}
     return templ.render(data)
 
-def send_email(email, token, name):
+def send_email(email, token, type, name):
     print('ENTROU NA FUNCÃO "SEND EMAIL"')
-    html = render_template('email.j2', token=token, name=name)
+    if type == 1:
+        html = render_template('emailActive.j2', token=token, name=name)
+    else:
+        html = render_template('emailPassword.j2', token=token, name=name)
 
     # UMBLER VARS 
     HOST_SMTP_UMBLER = config('HOST_SMTP_UMBLER') 

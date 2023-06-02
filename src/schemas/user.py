@@ -34,5 +34,6 @@ class NewPasswordRequest(BaseModel):
     confirm_password: str
 
 class ForgotPasswordRequest(BaseModel):
+    token: str
     new_password: str
     confirm_password: str
