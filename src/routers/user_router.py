@@ -137,8 +137,9 @@ def activate_account(activation_token: str, db: Session = Depends(get_db)):
     
     return {"message": "Account activated successfully"}
 
-@userRouter.post("/forgot-password")
+@userRouter.post("/forgotpassword")
 def forgot_password(email_request: EmailRequest, db: Session = Depends(get_db)):
+    print("entrei")
     # Verifica se o email fornecido existe no banco
     user: User = db.query(User).filter_by(email=email_request.email).first()
     if not user:
@@ -149,7 +150,7 @@ def forgot_password(email_request: EmailRequest, db: Session = Depends(get_db)):
 
     # Salva o token no banco
     user.token = reset_token
-    db.commit(user)
+    db.commit()
 
     # Envia o e-mail de redefinição de senha para o usuário
     send_email(email=user.email, token=reset_token, type=2, name= user.username)
@@ -157,7 +158,7 @@ def forgot_password(email_request: EmailRequest, db: Session = Depends(get_db)):
     return {"message": "Password reset email sent"}
 
 
-@userRouter.post("/reset-password")
+@userRouter.post("/resetpassword")
 def reset_password(reset_request: ForgotPasswordRequest, db: Session = Depends(get_db)):
     # Verifica se o token de redefinição de senha é válido
     user: User = db.query(User).filter_by(token=reset_request.token).first()
