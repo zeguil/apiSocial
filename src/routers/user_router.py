@@ -1,18 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException
+import bcrypt
+from typing import List
+from schemas.user import *
+from decouple import config
+from models.user import User
 from config.database import Session
 from config.dependencies import get_db
-from typing import List
-from decouple import config
-from schemas.user import *
-from sqlalchemy import or_
-from sqlalchemy.exc import SQLAlchemyError
-from models.user import User
-from utils.user_utils import validate_user_data, generate_reset_token, valid_password
 from utils.email_utils import send_email
-import bcrypt
-from controllers.userController import UserController
-from logs.logger import logger
 from itsdangerous import URLSafeTimedSerializer
+from controllers.userController import UserController
+from fastapi import APIRouter, Depends, HTTPException
+from utils.user_utils import generate_reset_token, valid_password
 
 
 userRouter = APIRouter(prefix='/user', tags=['Usuários'] )
