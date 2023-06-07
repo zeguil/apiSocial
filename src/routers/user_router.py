@@ -38,32 +38,8 @@ async def create_user(user: UserRequest, db: Session = Depends(get_db)) -> UserR
 # Atualiza Dados do Usuário
 @userRouter.put("/{id_user}", response_model=UserResponse, status_code=200)
 def update_user(id_user: int, user_update: UserUpdate, db: Session = Depends(get_db)) -> UserResponse:
-    try:
-        user: User = db.query(User).get(id_user)
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-        
-        if user_update.username:
-            user.username = user_update.username
-        
-        if user_update.email:
-            user.email = user_update.email
-        
-        db.commit()
-        db.refresh(user)
-
-        updated_user_response_data = {}
-        if user.username:
-            updated_user_response_data["username"] = user.username
-        if user.email:
-            updated_user_response_data["email"] = user.email
-        
-        updated_user_response = UserResponse(**updated_user_response_data)
-        
-        return updated_user_response
-    except SQLAlchemyError as e:
-        logger.error(e)
-        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+   user =  UserController(db).update_user(id_user, user_update=user_update)
+   return user
 
 
 @userRouter.delete("/{id_user}", status_code=204)

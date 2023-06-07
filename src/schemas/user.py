@@ -8,7 +8,6 @@ class UserRequest(BaseModel):
     # is_admin: bool = False
 
 class UserResponse(BaseModel):
-    id: int
     username: str
     email: str
     

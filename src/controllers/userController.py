@@ -16,7 +16,21 @@ from utils.user_utils import validate_user_data, generate_reset_token, valid_pas
 class UserController():
     def __init__(self, db:Session):
         self.db = db
-
+        
+    def list_users(self):
+        users = self.db.query(User).all()
+        return users
+    
+    def list_user(self, user_id: int):
+        try:
+            user: User = self.db.query(User).get(user_id)
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
+            return user
+        except SQLAlchemyError as e:
+            logger.error(e)
+            raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+        
     def create_user(self, user: UserRequest):
         validate_user_data(user)
         try:
@@ -52,16 +66,30 @@ class UserController():
             logger.error(e)
             raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
         
-    def list_users(self):
-        users = self.db.query(User).all()
-        return users
-    
-    def list_user(self, user_id: int):
+    def update_user(self, id_user: int, user_update: UserUpdate):
         try:
-            user: User = self.db.query(User).get(user_id)
+            user: User = self.db.query(User).get(id_user)
             if not user:
                 raise HTTPException(status_code=404, detail="User not found")
-            return user
+            
+            if user_update.username:
+                user.username = user_update.username
+            
+            if user_update.email:
+                user.email = user_update.email
+            
+            self.db.commit()
+            self.db.refresh(user)
+
+            updated_user_response_data = {}
+            if user.username:
+                updated_user_response_data["username"] = user.username
+            if user.email:
+                updated_user_response_data["email"] = user.email
+            
+            updated_user_response = UserResponse(**updated_user_response_data)
+            
+            return updated_user_response
         except SQLAlchemyError as e:
             logger.error(e)
-            raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}") 
