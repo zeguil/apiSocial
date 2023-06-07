@@ -20,7 +20,7 @@ userRouter = APIRouter(prefix='/user', tags=['Usuários'] )
 # Listar Usuários
 @userRouter.get("/", response_model=List[UserResponse], status_code=200)
 def list_users(db: Session = Depends(get_db)) -> List[UserResponse]:
-    users = db.query(User).all()
+    users = UserController(db).list_users()
     return users
 
 # Listar Usuário Pelo ID

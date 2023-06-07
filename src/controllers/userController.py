@@ -51,3 +51,9 @@ class UserController():
         except SQLAlchemyError as e:
             logger.error(e)
             raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+        
+    def list_users(self):
+        users = self.db.query(User).all()
+        return users
+    
+    
