@@ -25,7 +25,7 @@ def render_template(template, token, name):
 
 def send_email(email, token, name):
     print('ENTROU NA FUNCÃO "SEND EMAIL"')
-    html = render_template('email.j2', token=token, name=name)
+    html = render_template('emailActive.j2', token=token, name=name)
 
     # UMBLER VARS 
     HOST_SMTP_UMBLER = config('HOST_SMTP_UMBLER') 
@@ -61,7 +61,7 @@ def send_email(email, token, name):
         # Fechar servidor
         server.quit()
 
-send_email("zeguilhermelins@hotmail.com", "InplZ3VpbGhlcm1lbGluc0Bob3RtYWlsLmNvbSI.ZHdz_A.M1hNUzfrysA7obj7KtsszFfpCRs", "josé")
+send_email("zeguilhermelins@hotmail.com", "InplZ3VpbGhlcm1lbGluc0Bob3RtYWlsLmNvbSI.ZHdz_A.M1hNUzfrysA7obj7KtsszFfpCRs", "Henrique")
 
 # vbleliss310700@gmail.com
 # victoriabeatrizlelis@gmail.com
