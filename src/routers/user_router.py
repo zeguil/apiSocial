@@ -44,16 +44,7 @@ def update_user(id_user: int, user_update: UserUpdate, db: Session = Depends(get
 
 @userRouter.delete("/{id_user}", status_code=204)
 def delete_user(id_user: int, db: Session = Depends(get_db)) -> None:
-    try:
-        user: User = db.query(User).get(id_user)
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-        
-        db.delete(user)
-        db.commit()
-    except SQLAlchemyError as e:
-        logger.error(e)
-        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+    UserController(db).delete_user(id_user)
 
 @userRouter.get("/active/{activation_token}", status_code=200)
 def activate_account(activation_token: str, db: Session = Depends(get_db)):

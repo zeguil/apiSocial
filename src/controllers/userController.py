@@ -92,4 +92,17 @@ class UserController():
             return updated_user_response
         except SQLAlchemyError as e:
             logger.error(e)
-            raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}") 
+            raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+        
+    def delete_user(self, id_user):
+        try:
+            user: User = self.db.query(User).get(id_user)
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
+            
+            self.db.delete(user)
+            self.db.commit()
+            
+        except SQLAlchemyError as e:
+            logger.error(e)
+            raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
