@@ -26,14 +26,8 @@ def list_users(db: Session = Depends(get_db)) -> List[UserResponse]:
 # Listar Usuário Pelo ID
 @userRouter.get("/{id_user}", response_model=UserResponse, status_code=200)
 def get_user_by_id(id_user: int, db: Session = Depends(get_db)) -> UserResponse:
-    try:
-        user: User = db.query(User).get(id_user)
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-        return user
-    except SQLAlchemyError as e:
-        logger.error(e)
-        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+    user = UserController(db).list_user(id_user)
+    return user
 
 # Criar Usuário
 @userRouter.post("/", response_model=UserResponse, status_code=201)

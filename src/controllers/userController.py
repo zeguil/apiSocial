@@ -56,4 +56,12 @@ class UserController():
         users = self.db.query(User).all()
         return users
     
-    
+    def list_user(self, user_id: int):
+        try:
+            user: User = self.db.query(User).get(user_id)
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
+            return user
+        except SQLAlchemyError as e:
+            logger.error(e)
+            raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
