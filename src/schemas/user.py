@@ -5,7 +5,7 @@ class UserRequest(BaseModel):
     username: str
     password: str
     email: str
-    # is_admin: bool = False
+    
 
 class UserResponse(BaseModel):
     username: str

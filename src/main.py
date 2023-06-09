@@ -1,8 +1,10 @@
 import uvicorn
 from typing import Dict
-from models.user import User, Profile
+# from models.user import User, Profile
 from config.database import Base, engine
-from routers.user_router import userRouter
+from routers.userRoutes import userRouter
+from routers.userActions import userActions
+from routers.auth import authRouter
 from sqlalchemy import inspect
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -40,6 +42,10 @@ app.add_middleware(
 )
 
 app.include_router(userRouter)
+app.include_router(userActions)
+app.include_router(authRouter)
+
+
 
 @app.get("/")
 def index() -> Dict:

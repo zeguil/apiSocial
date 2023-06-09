@@ -7,10 +7,9 @@ from logs.logger import logger
 from fastapi import HTTPException
 from config.database import Session
 from utils.email_utils import send_email
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.exc import SQLAlchemyError
 from itsdangerous import URLSafeTimedSerializer
-from utils.user_utils import validate_user_data, generate_reset_token, valid_password
+from utils.user_utils import validate_user_data
 
 
 class UserController():
