@@ -67,23 +67,5 @@ def validate_user_data(user):
     # muda todos os caractéres do username para minusculo
     user.username = user.username.lower()
 
-def send_activation_email(email: str, activation_token: str):
-    # Configurações do servidor SMTP
-    SMTP_HOST = config("HOST_SMTP_UMBLER")
-    SMTP_PORT = config("PORT_UMBLER", cast=int)
-    SMTP_USERNAME = config("EMAIL_UMBLER")
-    SMTP_PASSWORD = config("SENHA_UMBLER")
-
-    # Crie a mensagem de email
-    message = MIMEText(f"Clique no link para ativar sua conta: {activation_token}")
-    message["Subject"] = "Ativação de conta"
-    message["From"] = SMTP_USERNAME
-    message["To"] = email
-
-    # Envie o email
-    with SMTP_SSL(SMTP_HOST, SMTP_PORT) as smtp:
-        smtp.login(SMTP_USERNAME, SMTP_PASSWORD)
-        smtp.send_message(message)
-
 def generate_reset_token():
     return secrets.token_urlsafe(32)
