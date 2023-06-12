@@ -9,6 +9,8 @@ from controllers.auth import AuthController
 
 authRouter = APIRouter(prefix='/auth', tags=['Autênticação'] )
 
+
+
 @authRouter.post('/token', response_model=LoginSuccess)
 async def sing_in(login_data: Login, db: Session = Depends(get_db)):
     return AuthController(db).token(login_data)

@@ -4,7 +4,7 @@ from config.database import Session
 from fastapi import APIRouter, Depends
 from config.dependencies import get_db
 from controllers.userController import UserController
-
+from utils.auth import logged_user
 
 userRouter = APIRouter(prefix='/user', tags=['Usuários'] )
 
