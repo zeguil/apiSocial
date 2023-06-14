@@ -37,12 +37,15 @@ class ProfileController():
             raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
 
-    def update_profile(self, profile_id: int, profile: ProfileUpdate):
-        existing_profile = self.db.query(Profile).get(profile_id)
+    def update_profile(self, logged_user_id: int, profile: ProfileUpdate):
+        existing_profile: Profile = self.db.query(Profile).filter_by(Profile.user_id == logged_user_id)
         if not existing_profile:
             raise HTTPException(status_code=404, detail="Profile not found")
-        for field, value in profile.dict().items():
-            setattr(existing_profile, field, value)
+        if existing_profile.bio:
+                existing_profile.bio = profile.bio
+        if existing_profile.full_name:
+                existing_profile.full_name = profile.full_name
+        
         self.db.commit()
         self.db.refresh(existing_profile)
         return existing_profile

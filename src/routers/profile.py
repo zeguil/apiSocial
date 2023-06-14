@@ -11,12 +11,12 @@ from controllers.profileController import ProfileController
 profileRouter = APIRouter(prefix="/profile", tags=['Profile'])
 
 
-@profileRouter.post("")
+@profileRouter.post("/")
 def create_profile(profile: ProfileRequest, user: SimpleUser = Depends(logged_user), db : Session = Depends(get_db)):
-    new_profile = ProfileController(db).create_profile(profile)
+    new_profile = ProfileController(db).create_profile(profile, user.id)
     return new_profile
 
-@profileRouter.get("")
+@profileRouter.get("/")
 def get_profile_byId(user: SimpleUser = Depends(logged_user), db : Session = Depends(get_db)):
     profile = ProfileController(db).get_profile(user)
     return profile
